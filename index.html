@@ -15,56 +15,21 @@
 
 <body>
   <div class="container">
-    <form id="form-calc">
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" name="nome" required>
+    <form id="form-principal" onsubmit="return false;">
+      <div id="requerentes-container">
+        <!-- Aqui será adicionado um novo formulário de requerente -->
+      </div>
 
-      <label for="estado">Estado:</label>
-      <select id="estado" name="estado" required>
-        <option value="">Selecione um estado</option>
-        <option value="ACRE">Acre</option>
-        <option value="ALAGOAS">Alagoas</option>
-        <option value="AMAPÁ">Amapá</option>
-        <option value="AMAZONAS">Amazonas</option>
-        <option value="BAHIA">Bahia</option>
-        <option value="CEARÁ">Ceará</option>
-        <option value="DISTRITO FEDERAL">Distrito Federal</option>
-        <option value="ESPIRITO SANTO">Espírito Santo</option>
-        <option value="GOIÁS">Goiás</option>
-        <option value="MARANHÃO">Maranhão</option>
-        <option value="MATO GROSSO">Mato Grosso</option>
-        <option value="MATO GROSSO SUL">Mato Grosso do Sul</option>
-        <option value="MINAS GERAIS">Minas Gerais</option>
-        <option value="PARANÁ">Paraná</option>
-        <option value="PARÁ">Pará</option>
-        <option value="PARAIBA">Paraíba</option>
-        <option value="PERNAMBUCO">Pernambuco</option>
-        <option value="PIAUI">Piauí</option>
-        <option value="RIO DE JANEIRO">Rio de Janeiro</option>
-        <option value="RIO GRANDE NORTE">Rio Grande do Norte</option>
-        <option value="RIO GRANDE SUL">Rio Grande do Sul</option>
-        <option value="RONDONIA">Rondônia</option>
-        <option value="RORAIMA">Roraima</option>
-        <option value="SANTA CATARINA">Santa Catarina</option>
-        <option value="SÃO PAULO">São Paulo</option>
-        <option value="SERGIPE">Sergipe</option>
-        <option value="TOCANTIS">Tocantins</option>
-      </select>
-
-      <label for="geracao">Geração:</label>
-      <input type="number" id="geracao" name="geracao" min="1" required placeholder="Exemplo: 3 para trineto">
-
-      <button type="submit">Calcular</button>
+      <button id="add-requerente" type="button">Adicionar Requerente</button>
+      <button id="calcular" type="button">Calcular</button>
     </form>
 
-    <hr />
+    <hr class="hr-html" />
 
-    <div id="resultado">
-      <p>Quantidade de Documentos: <span id="qtd-docs">0</span></p>
-      <p>Valor de Certidões: R$ <span id="valor-certidoes">0,00</span></p>
-      <p>Valor de Traduções: R$ <span id="valor-traducoes">0,00</span></p>
-      <p>Valor de Apostilamentos: R$ <span id="valor-apostilamentos">0,00</span></p>
-      <p>Valor Total: R$ <span id="valor-total">0,00</span></p>
+    <div class="resultado">
+      <div id="resultados-container">
+        <!-- Os resultados para cada requerente aparecerão aqui -->
+      </div>
     </div>
   </div>
 
