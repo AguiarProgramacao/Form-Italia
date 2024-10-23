@@ -66,3 +66,19 @@ button:hover {
 #resultado p {
   margin-bottom: 10px;
 }
+
+@media (max-width: 768px) {
+  body{
+    padding: 40px 0;
+  }
+
+  .container{
+    flex-direction: column;
+    width: 90%;
+  }
+
+  hr{
+    height: 1px;
+    width: 100%;
+  }
+}
