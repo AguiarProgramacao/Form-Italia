@@ -5,41 +5,59 @@ const estados = {
   "ESPIRITO SANTO": { certidao: 192, traducao: 120, apostilamento: 95 },
   "SANTA CATARINA": { certidao: 170, traducao: 120, apostilamento: 95 },
   "RIO GRANDE SUL": { certidao: 185, traducao: 120, apostilamento: 95 },
-  PARANÁ: { certidao: 220, traducao: 120, apostilamento: 95 },
+  "PARANÁ": { certidao: 220, traducao: 120, apostilamento: 95 },
   "MATO GROSSO SUL": { certidao: 155, traducao: 120, apostilamento: 95 },
-  GOIÁS: { certidao: 200, traducao: 120, apostilamento: 95 },
+  "GOIÁS": { certidao: 200, traducao: 120, apostilamento: 95 },
   "MATO GROSSO": { certidao: 195, traducao: 120, apostilamento: 95 },
   "DISTRITO FEDERAL": { certidao: 147, traducao: 120, apostilamento: 95 },
-  TOCANTINS: { certidao: 163, traducao: 120, apostilamento: 95 },
-  RORAIMA: { certidao: 159, traducao: 120, apostilamento: 95 },
-  RONDÔNIA: { certidao: 315, traducao: 120, apostilamento: 95 },
-  PARÁ: { certidao: 510, traducao: 120, apostilamento: 95 },
-  AMAPÁ: { certidao: 213, traducao: 120, apostilamento: 95 },
-  AMAZONAS: { certidao: 240, traducao: 120, apostilamento: 95 },
-  ACRE: { certidao: 224, traducao: 120, apostilamento: 95 },
-  ALAGOAS: { certidao: 173, traducao: 120, apostilamento: 95 },
-  BAHIA: { certidao: 225, traducao: 120, apostilamento: 95 },
-  CEARÁ: { certidao: 204, traducao: 120, apostilamento: 95 },
-  MARANHÃO: { certidao: 198, traducao: 120, apostilamento: 95 },
-  PARAÍBA: { certidao: 208, traducao: 120, apostilamento: 95 },
-  PERNAMBUCO: { certidao: 182, traducao: 120, apostilamento: 95 },
-  PIAUÍ: { certidao: 172, traducao: 120, apostilamento: 95 },
+  "TOCANTINS": { certidao: 163, traducao: 120, apostilamento: 95 },
+  "RORAIMA": { certidao: 159, traducao: 120, apostilamento: 95 },
+  "RONDÔNIA": { certidao: 315, traducao: 120, apostilamento: 95 },
+  "PARÁ": { certidao: 510, traducao: 120, apostilamento: 95 },
+  "AMAPÁ": { certidao: 213, traducao: 120, apostilamento: 95 },
+  "AMAZONAS": { certidao: 240, traducao: 120, apostilamento: 95 },
+  "ACRE": { certidao: 224, traducao: 120, apostilamento: 95 },
+  "ALAGOAS": { certidao: 173, traducao: 120, apostilamento: 95 },
+  "BAHIA": { certidao: 225, traducao: 120, apostilamento: 95 },
+  "CEARÁ": { certidao: 204, traducao: 120, apostilamento: 95 },
+  "MARANHÃO": { certidao: 198, traducao: 120, apostilamento: 95 },
+  "PARAÍBA": { certidao: 208, traducao: 120, apostilamento: 95 },
+  "PERNAMBUCO": { certidao: 182, traducao: 120, apostilamento: 95 },
+  "PIAUÍ": { certidao: 172, traducao: 120, apostilamento: 95 },
   "RIO GRANDE NORTE": { certidao: 244.78, traducao: 120, apostilamento: 95 },
-  SERGIPE: { certidao: 185, traducao: 120, apostilamento: 95 },
+  "SERGIPE": { certidao: 185, traducao: 120, apostilamento: 95 },
 };
 
 let requerenteId = 0;
 
 adicionarRequerente();
 
-document
-  .getElementById("add-requerente")
-  .addEventListener("click", function () {
-    adicionarRequerente();
-  });
+document.getElementById("add-requerente").addEventListener("click", function () {
+  adicionarRequerente();
+});
 
-document.getElementById("calcular").addEventListener("click", function () {
-  calcularTodosRequerentes();
+async function obterCotacaoEuro() {
+  try {
+    const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
+    const data = await response.json();
+
+    const cotacaoEuro = data.rates.BRL;
+    return cotacaoEuro;
+  } catch (error) {
+    console.error("Erro ao obter a cotação do Euro:", error);
+    return null;
+  }
+}
+
+document.getElementById("calcular").addEventListener("click", async function () {
+  const cotacaoEuro = await obterCotacaoEuro();
+  
+  if (!cotacaoEuro) {
+    alert("Não foi possível obter a cotação do Euro. Tente novamente mais tarde.");
+    return;
+  }
+  
+  calcularTodosRequerentes(cotacaoEuro);
 });
 
 function adicionarRequerente() {
@@ -99,9 +117,13 @@ function adicionarRequerente() {
     .insertAdjacentHTML("beforeend", formHtml);
 }
 
-function calcularTodosRequerentes() {
+function calcularTodosRequerentes(cotacaoEuro) {
   const resultadosContainer = document.getElementById("resultados-container");
   resultadosContainer.innerHTML = "";
+
+  const valorDocumentosOriginaisEuro = 100;
+  const valorDocumentosOriginais = valorDocumentosOriginaisEuro * cotacaoEuro;
+  const valorDocumentosPorRequerente = valorDocumentosOriginais / requerenteId;
 
   for (let i = 1; i <= requerenteId; i++) {
     const estado = document.getElementById(`estado-${i}`).value;
@@ -114,7 +136,11 @@ function calcularTodosRequerentes() {
       continue;
     }
 
-    const resultados = calcularDocumentosEValores(estado, geracao);
+    const resultados = calcularDocumentosEValores(
+      estado,
+      geracao,
+      valorDocumentosPorRequerente
+    );
 
     const resultadoHTML = `
       <div>
@@ -134,29 +160,33 @@ function calcularTodosRequerentes() {
   }
 }
 
-function calcularDocumentosEValores(estado, geracao) {
+function calcularDocumentosEValores(estado, geracao, valorDocumentosPorRequerente) {
   const { certidao, traducao, apostilamento } = estados[estado];
 
-  const valorDocumentosOriginais = 300;
+  const documentosSubsequentes = (geracao - 1) * 2;  // Documentos que precisam de tradução
+  const qtdDocumentos = 3 + documentosSubsequentes;  // Total de documentos, incluindo os 3 italianos
 
-  const documentosSubsequentes = (geracao - 1) * 2;
-  const qtdDocumentos = 3 + documentosSubsequentes;
+  // Apenas os documentos subsequentes precisam de tradução
+  const valorTraducoes = documentosSubsequentes * traducao;
 
-  const valorCertidoesSubsequentes = documentosSubsequentes * certidao;
-  const valorTraducoes = qtdDocumentos * traducao;
+  // Todos os documentos (inclusive os italianos) precisam de apostilamento
   const valorApostilamentos = qtdDocumentos * 2 * apostilamento;
 
+  // O valor das certidões subsequentes inclui os documentos subsequentes + valor dos 3 documentos originais
+  const valorCertidoesSubsequentes = documentosSubsequentes * certidao;
+  
+  // Valor total inclui documentos originais nas certidões e apostilamentos, mas não nas traduções
   const valorTotal =
-    valorDocumentosOriginais +
-    valorCertidoesSubsequentes +
-    valorTraducoes +
-    valorApostilamentos;
+    valorDocumentosPorRequerente + // Valor dos documentos originais (3 italianos)
+    valorCertidoesSubsequentes +  // Certidões para os documentos subsequentes
+    valorTraducoes +  // Traduções (apenas para os subsequentes)
+    valorApostilamentos;  // Apostilamentos para todos os documentos
 
   return {
     qtdDocumentos,
-    valorCertidoes: valorCertidoesSubsequentes + valorDocumentosOriginais,
-    valorTraducoes,
-    valorApostilamentos,
-    valorTotal,
+    valorCertidoes: valorCertidoesSubsequentes + valorDocumentosPorRequerente, // Inclui documentos italianos
+    valorTraducoes,  // Traduções apenas para os subsequentes
+    valorApostilamentos,  // Apostilamentos para todos os documentos
+    valorTotal,  // Total ajustado
   };
 }
