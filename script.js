@@ -60,32 +60,47 @@ async function obterCotacaoEuro() {
 function adicionarRequerente() {
   requerenteId++;
   const formHtml = `
-    <div id="requerente-${requerenteId}" class="form-container">
-      <h4>Requerente ${requerenteId}</h4>
-      <label for="nome-${requerenteId}">Nome:</label>
-      <input type="text" id="nome-${requerenteId}" required>
-      <label for="estado-${requerenteId}">Estado:</label>
-      <select id="estado-${requerenteId}" required>
-        <option value="">Selecione um Estado</option>
-        ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
-      </select>
-      <label for="estado-civil-${requerenteId}">Estado Civil:</label>
-      <select id="estado-civil-${requerenteId}" required onchange="atualizarEstadoCasamento(${requerenteId})">
-        <option value="solteiro">Solteiro(a)</option>
-        <option value="casado">Casado(a)</option>
-      </select>
-      <div id="estado-casamento-container-${requerenteId}" style="display: none;">
-        <label for="estado-casamento-${requerenteId}">Estado do Casamento:</label>
-        <select id="estado-casamento-${requerenteId}">
+    <div id="requerente-container-${requerenteId}">
+      <div id="requerente-${requerenteId}" class="form-container">
+        <h4>Requerente ${requerenteId}</h4>
+        <label for="nome-${requerenteId}">Nome:</label>
+        <input type="text" id="nome-${requerenteId}" required>
+        <label for="estado-${requerenteId}">Estado:</label>
+        <select id="estado-${requerenteId}" required>
           <option value="">Selecione um Estado</option>
           ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
         </select>
+        <label for="estado-civil-${requerenteId}">Estado Civil:</label>
+        <select id="estado-civil-${requerenteId}" required onchange="atualizarEstadoCasamento(${requerenteId})">
+          <option value="solteiro">Solteiro(a)</option>
+          <option value="casado">Casado(a)</option>
+        </select>
+        <div id="estado-casamento-container-${requerenteId}" style="display: none;">
+          <label for="estado-casamento-${requerenteId}">Estado do Casamento:</label>
+          <select id="estado-casamento-${requerenteId}">
+            <option value="">Selecione um Estado</option>
+            ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+          </select>
+        </div>
+        <div id="filhos-container-${requerenteId}" class="filhos-container"></div>
+        <button type="button" id="add-filho-${requerenteId}" onclick="adicionarFilho(${requerenteId})">Adicionar Filho</button>
+        <button class="button-remove" onclick="removerRequerente(${requerenteId})">
+          <i class="fa-solid fa-trash"></i>
+        </button>
       </div>
-      <div id="filhos-container-${requerenteId}" class="filhos-container"></div>
-      <button type="button" id="filhoButton add-filho-${requerenteId}" onclick="adicionarFilho(${requerenteId})">Adicionar Filho</button>
-    </div><hr />`;
-  
+      <hr />
+    </div>`;
+
   document.getElementById("requerentes-container").insertAdjacentHTML("beforeend", formHtml);
+}
+
+function removerRequerente(id) {
+  const container = document.getElementById(`requerente-container-${id}`);
+  if (container) {
+    container.remove();
+    atualizarNumeracao("requerentes-container", "Requerente");
+    requerenteId--; // Ajusta o ID
+  }
 }
 
 function adicionarFilho(requerenteId) {
@@ -114,17 +129,44 @@ function atualizarEstadoCasamento(requerenteId) {
 function adicionarCompartilhado() {
   compartilhadoId++;
   const formHtml = `
-    <div id="compartilhado-${compartilhadoId}" class="form-container">
-      <h4>Compartilhado ${compartilhadoId}</h4>
-      <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
-      <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
-      <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
-      <select id="estado-compartilhado-${compartilhadoId}" required>
-        <option value="">Selecione um Estado</option>
-        ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
-      </select>
-    </div><hr />`;
+    <div id="compartilhado-container-${compartilhadoId}">
+      <div id="compartilhado-${compartilhadoId}" class="form-container">
+        <h4>Compartilhado ${compartilhadoId}</h4>
+        <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
+        <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
+        <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
+        <select id="estado-compartilhado-${compartilhadoId}" required>
+          <option value="">Selecione um Estado</option>
+          ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+        </select>
+        <button class="button-remove" onclick="removerCompartilhado(${compartilhadoId})">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+      <hr />
+    </div>`;
+
   document.getElementById("compartilhados-container").insertAdjacentHTML("beforeend", formHtml);
+}
+
+function removerCompartilhado(id) {
+  const container = document.getElementById(`compartilhado-container-${id}`);
+  if (container) {
+    container.remove();
+    atualizarNumeracao("compartilhados-container", "Compartilhado");
+    compartilhadoId--; // Ajusta o ID
+  }
+}
+
+// Função para atualizar a numeração após exclusão
+function atualizarNumeracao(containerId, tipo) {
+  const container = document.getElementById(containerId);
+  const itens = container.querySelectorAll(`.form-container`);
+
+  itens.forEach((item, index) => {
+    const titulo = item.querySelector("h4");
+    if (titulo) titulo.textContent = `${tipo} ${index + 1}`;
+  });
 }
 
 function calcularTodosRequerentes(cotacaoEuro) {
