@@ -34,11 +34,9 @@ let compartilhadoId = 0;
 adicionarRequerente();
 adicionarCompartilhado();
 
-// Listeners para adicionar mais requerentes ou compartilhados
 document.getElementById("add-requerente").addEventListener("click", adicionarRequerente);
 document.getElementById("add-compartilhado").addEventListener("click", adicionarCompartilhado);
 
-// Listener para calcular todos os requerentes
 document.getElementById("calcular").addEventListener("click", async function () {
   const cotacaoEuro = await obterCotacaoEuro();
   if (!cotacaoEuro) {
@@ -48,7 +46,6 @@ document.getElementById("calcular").addEventListener("click", async function () 
   calcularTodosRequerentes(cotacaoEuro);
 });
 
-// Função para obter a cotação do Euro
 async function obterCotacaoEuro() {
   try {
     const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
@@ -60,7 +57,6 @@ async function obterCotacaoEuro() {
   }
 }
 
-// Função para adicionar um novo requerente
 function adicionarRequerente() {
   requerenteId++;
   const formHtml = `
@@ -68,17 +64,53 @@ function adicionarRequerente() {
       <h4>Requerente ${requerenteId}</h4>
       <label for="nome-${requerenteId}">Nome:</label>
       <input type="text" id="nome-${requerenteId}" required>
-
       <label for="estado-${requerenteId}">Estado:</label>
       <select id="estado-${requerenteId}" required>
         <option value="">Selecione um Estado</option>
         ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
       </select>
+      <label for="estado-civil-${requerenteId}">Estado Civil:</label>
+      <select id="estado-civil-${requerenteId}" required onchange="atualizarEstadoCasamento(${requerenteId})">
+        <option value="solteiro">Solteiro(a)</option>
+        <option value="casado">Casado(a)</option>
+      </select>
+      <div id="estado-casamento-container-${requerenteId}" style="display: none;">
+        <label for="estado-casamento-${requerenteId}">Estado do Casamento:</label>
+        <select id="estado-casamento-${requerenteId}">
+          <option value="">Selecione um Estado</option>
+          ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+        </select>
+      </div>
+      <div id="filhos-container-${requerenteId}" class="filhos-container"></div>
+      <button type="button" id="filhoButton add-filho-${requerenteId}" onclick="adicionarFilho(${requerenteId})">Adicionar Filho</button>
     </div><hr />`;
+  
   document.getElementById("requerentes-container").insertAdjacentHTML("beforeend", formHtml);
 }
 
-// Função para adicionar um novo compartilhado
+function adicionarFilho(requerenteId) {
+  const filhosContainer = document.getElementById(`filhos-container-${requerenteId}`);
+  const filhoId = filhosContainer.childElementCount + 1; // Contar filhos existentes para ID
+
+  const filhoHtml = `
+    <div id="filho-${requerenteId}-${filhoId}" class="filho-container">
+      <h5>Filho ${filhoId}</h5>
+      <label for="estado-filho-${requerenteId}-${filhoId}">Estado de Nascimento:</label>
+      <select id="estado-filho-${requerenteId}-${filhoId}" required>
+        <option value="">Selecione um Estado</option>
+        ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+      </select>
+    </div>`;
+  
+  filhosContainer.insertAdjacentHTML("beforeend", filhoHtml);
+}
+
+function atualizarEstadoCasamento(requerenteId) {
+  const estadoCivil = document.getElementById(`estado-civil-${requerenteId}`).value;
+  const estadoCasamentoContainer = document.getElementById(`estado-casamento-container-${requerenteId}`);
+  estadoCasamentoContainer.style.display = estadoCivil === "casado" ? "block" : "none";
+}
+
 function adicionarCompartilhado() {
   compartilhadoId++;
   const formHtml = `
@@ -86,52 +118,46 @@ function adicionarCompartilhado() {
       <h4>Compartilhado ${compartilhadoId}</h4>
       <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
       <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
-
-      <div class="select">
-        <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
-        <select id="estado-compartilhado-${compartilhadoId}" required>
-          <option value="">Selecione um Estado</option>
-          ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
-        </select>
-      </div>
+      <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
+      <select id="estado-compartilhado-${compartilhadoId}" required>
+        <option value="">Selecione um Estado</option>
+        ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+      </select>
     </div><hr />`;
   document.getElementById("compartilhados-container").insertAdjacentHTML("beforeend", formHtml);
 }
 
-// Função para calcular todos os requerentes
 function calcularTodosRequerentes(cotacaoEuro) {
   const resultadosContainer = document.getElementById("resultados-container");
-  resultadosContainer.innerHTML = ""; // Limpar resultados anteriores
+  resultadosContainer.innerHTML = "";
 
-  // Calcula e exibe os valores compartilhados
   const compartilhado = calcularCompartilhado(cotacaoEuro);
+  const valorCompartilhadoPorRequerente = compartilhado.totalCompartilhado / Math.max(requerenteId, 1);
+
   resultadosContainer.insertAdjacentHTML("beforeend", formatarResultadoCompartilhado(compartilhado));
 
-  // Divide o valor compartilhado pelo número de requerentes
-  const valorCompartilhadoPorRequerente = compartilhado.totalCompartilhado / requerenteId;
-
-  // Itera sobre todos os requerentes e exibe os resultados
   for (let i = 1; i <= requerenteId; i++) {
-    const estado = document.getElementById(`estado-${i}`).value;
+    const estado = document.getElementById(`estado-${i}`)?.value;
+    const estadoCivil = document.getElementById(`estado-civil-${i}`)?.value;
+    const estadoCasamento = document.getElementById(`estado-casamento-${i}`)?.value || null;
+    const quantidadeFilhos = document.getElementById(`filhos-container-${i}`)?.childElementCount || 0;
 
-    if (!estado) {
+    if (!estado || !estadoCivil || (estadoCivil === "casado" && !estadoCasamento)) {
       alert(`Preencha todos os campos do Requerente ${i}.`);
       continue;
     }
 
-    const resultadoRequerente = calcularRequerente(estado);
+    const resultadoRequerente = calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos);
     resultadosContainer.insertAdjacentHTML(
-      "beforeend", 
+      "beforeend",
       formatarResultadoRequerente(i, resultadoRequerente, valorCompartilhadoPorRequerente)
     );
   }
 }
 
-// Função para calcular os valores compartilhados
 function calcularCompartilhado(cotacaoEuro) {
   let totalCertidoes = 0, totalTraducoes = 0, totalApostilamentos = 0;
 
-  // Itera sobre todos os compartilhados para calcular os valores de acordo com o estado
   for (let i = 1; i <= compartilhadoId; i++) {
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
 
@@ -142,12 +168,12 @@ function calcularCompartilhado(cotacaoEuro) {
 
     const { certidao, traducao, apostilamento } = estados[estado];
 
-    totalCertidoes += 2 * certidao; // 2 certidões por compartilhado
-    totalTraducoes += 2 * traducao; // 2 traduções por compartilhado
-    totalApostilamentos += 4 * apostilamento; // 4 apostilamentos por compartilhado
+    totalCertidoes += 2 * certidao;
+    totalTraducoes += 2 * traducao;
+    totalApostilamentos += 4 * apostilamento;
   }
 
-  const valorCertidaoItaliana = 100 * cotacaoEuro; // Valor fixo da certidão italiana
+  const valorCertidaoItaliana = 100 * cotacaoEuro;
   const totalCompartilhado = totalCertidoes + totalTraducoes + totalApostilamentos + valorCertidaoItaliana;
 
   return { 
@@ -159,43 +185,68 @@ function calcularCompartilhado(cotacaoEuro) {
   };
 }
 
-// Função para calcular o custo de cada requerente sem a certidão italiana
-function calcularRequerente(estado) {
-  const { certidao, traducao, apostilamento } = estados[estado];
+function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos) {
+  let totalCertidoes = 0, totalTraducoes = 0, totalApostilamentos = 0;
 
-  const valorCertidoes = 2 * certidao; // 2 certidões
-  const valorTraducoes = 2 * traducao; // 2 traduções
-  const valorApostilamentos = 4 * apostilamento; // 4 apostilamentos
+  // Valores iniciais para o requerente
+  const { certidao, traducao, apostilamento } = estados[estado] || {};
+  totalCertidoes += certidao || 0;
+  totalTraducoes += traducao || 0;
+  totalApostilamentos += 2 * (apostilamento || 0);
 
-  const total = valorCertidoes + valorTraducoes + valorApostilamentos;
+  // Adicionar documentos do casamento se houver
+  if (estadoCivil === "casado" && estadoCasamento) {
+    const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
+    totalCertidoes += certCas || 0;
+    totalTraducoes += tradCas || 0;
+    totalApostilamentos += 2 * (aposCas || 0);
+  }
 
-  return { valorCertidoes, valorTraducoes, valorApostilamentos, total };
+  // Adicionar documentos para cada filho, se houver
+  for (let i = 1; i <= quantidadeFilhos; i++) {
+    const estadoFilho = document.getElementById(`estado-filho-${requerenteId}-${i}`)?.value;
+    if (estadoFilho) {
+      const { certidao: certFilho, traducao: tradFilho, apostilamento: aposFilho } = estados[estadoFilho] || {};
+      totalCertidoes += certFilho || 0;
+      totalTraducoes += tradFilho || 0;
+      totalApostilamentos += 2 * (aposFilho || 0);
+    }
+  }
+
+  return {
+    valorCertidoes: totalCertidoes,
+    valorTraducoes: totalTraducoes,
+    valorApostilamentos: totalApostilamentos,
+    totalRequerente: totalCertidoes + totalTraducoes + totalApostilamentos,
+  };
 }
 
-// Função para exibir os valores compartilhados
+function formatarResultadoRequerente(id, resultado, valorCompartilhadoPorRequerente) {
+  const totalComCompartilhado = resultado.totalRequerente + valorCompartilhadoPorRequerente;
+
+  return `
+    <div>
+      <h5>Requerente ${id}</h5>
+      <p>Valor Compartilhado: R$ ${valorCompartilhadoPorRequerente.toFixed(2)}</p>
+      <p>Valor Certidões Requerente: R$ ${resultado.valorCertidoes.toFixed(2)}</p>
+      <p>Valor Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}</p>
+      <p>Valor Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}</p>
+      <p><strong>Valor Total com Compartilhado: R$ ${totalComCompartilhado.toFixed(2)}</strong></p>
+    </div>
+    <hr/>
+  `;
+}
+
 function formatarResultadoCompartilhado(compartilhado) {
   return `
-    <div class="compartilhado-container">
-      <h4>Valores Compartilhados</h4>
+    <div>
+      <h5>Compartilhado</h5>
+      <p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>
       <p>Valor Certidões Brasileiras: R$ ${compartilhado.valorCertidoes.toFixed(2)}</p>
       <p>Valor Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}</p>
       <p>Valor Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}</p>
-      <p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>
-      <p><strong>Total Compartilhado:</strong> R$ ${compartilhado.totalCompartilhado.toFixed(2)}</p>
-      <hr />
-    </div>`;
-}
-
-// Função para exibir os resultados de cada requerente
-function formatarResultadoRequerente(id, resultado, valorCompartilhadoPorRequerente) {
-  return `
-    <div class="requerente-container">
-      <h4>Requerente ${id}</h4>
-      <p>Valor Certidões Compartilhadas: R$ ${valorCompartilhadoPorRequerente.toFixed(2)}</p>
-      <p>Valor Certidões Brasileiras: R$ ${resultado.valorCertidoes.toFixed(2)}</p>
-      <p>Valor Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}</p>
-      <p>Valor Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}</p>
-      <p><strong>Valor Total:</strong> R$ ${(resultado.total + valorCompartilhadoPorRequerente).toFixed(2)}</p>
-      <hr />
-    </div>`;
+      <p>Total Compartilhado: R$ ${compartilhado.totalCompartilhado.toFixed(2)}</p>
+    </div>
+    <hr/>
+  `;
 }

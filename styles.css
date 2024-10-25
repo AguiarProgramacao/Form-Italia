@@ -112,6 +112,15 @@ hr {
   margin: 20px 0;
 }
 
+.hr-html{
+  width: 1px;
+  height: 30px;
+}
+
+#filhoButton{
+  margin-top: 15px;
+}
+
 /* Responsividade para telas menores */
 @media (max-width: 1024px) {
   .container {
