@@ -11,12 +11,13 @@ body {
   align-items: center;
   min-height: 100vh;
   background-color: #e0e0e0;
+  padding: 10px;
 }
 
 .container {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   padding: 30px;
   background-color: #fff;
@@ -35,7 +36,7 @@ body {
   width: 300px;
 }
 
-.compartilhadas{
+.compartilhadas {
   width: 100%;
 }
 
@@ -111,8 +112,55 @@ hr {
   margin: 20px 0;
 }
 
-.hr-html{
-  width: 1px;
-  height: 120px;
-  color: #218838;
+/* Responsividade para telas menores */
+@media (max-width: 1024px) {
+  .container {
+    width: 100%;
+    padding: 20px;
+  }
+
+  #requerentes-container, 
+  #form-principal {
+    width: 100%;
+  }
+
+  .btn-calcular {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hr-html {
+    display: none; /* Remover a linha vertical */
+  }
+
+  #requerentes-container, 
+  #form-principal, 
+  #resultados-container {
+    width: 100%;
+  }
+
+  .btn-calcular {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 5px;
+  }
+
+  input, select, button {
+    font-size: 12px;
+  }
+
+  .btn-calcular {
+    padding: 8px;
+    font-size: 16px;
+  }
 }
