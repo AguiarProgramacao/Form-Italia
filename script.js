@@ -29,164 +29,173 @@ const estados = {
 };
 
 let requerenteId = 0;
+let compartilhadoId = 0;
 
 adicionarRequerente();
+adicionarCompartilhado();
 
-document.getElementById("add-requerente").addEventListener("click", function () {
-  adicionarRequerente();
+// Listeners para adicionar mais requerentes ou compartilhados
+document.getElementById("add-requerente").addEventListener("click", adicionarRequerente);
+document.getElementById("add-compartilhado").addEventListener("click", adicionarCompartilhado);
+
+// Listener para calcular todos os requerentes
+document.getElementById("calcular").addEventListener("click", async function () {
+  const cotacaoEuro = await obterCotacaoEuro();
+  if (!cotacaoEuro) {
+    alert("Não foi possível obter a cotação do Euro. Tente novamente mais tarde.");
+    return;
+  }
+  calcularTodosRequerentes(cotacaoEuro);
 });
 
+// Função para obter a cotação do Euro
 async function obterCotacaoEuro() {
   try {
     const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
     const data = await response.json();
-
-    const cotacaoEuro = data.rates.BRL;
-    return cotacaoEuro;
+    return data.rates.BRL;
   } catch (error) {
     console.error("Erro ao obter a cotação do Euro:", error);
     return null;
   }
 }
 
-document.getElementById("calcular").addEventListener("click", async function () {
-  const cotacaoEuro = await obterCotacaoEuro();
-  
-  if (!cotacaoEuro) {
-    alert("Não foi possível obter a cotação do Euro. Tente novamente mais tarde.");
-    return;
-  }
-  
-  calcularTodosRequerentes(cotacaoEuro);
-});
-
+// Função para adicionar um novo requerente
 function adicionarRequerente() {
   requerenteId++;
-
   const formHtml = `
     <div id="requerente-${requerenteId}" class="form-container">
       <h4>Requerente ${requerenteId}</h4>
       <label for="nome-${requerenteId}">Nome:</label>
-      <input type="text" id="nome-${requerenteId}" name="nome" required>
-      <div class="container-item">
-        <div>
-          <label for="estado-${requerenteId}">Estado:</label>
-          <select id="estado-${requerenteId}" name="estado" required>
-            <option value="">Estado</option>
-            <option value="ACRE">Acre</option>
-            <option value="ALAGOAS">Alagoas</option>
-            <option value="AMAPÁ">Amapá</option>
-            <option value="AMAZONAS">Amazonas</option>
-            <option value="BAHIA">Bahia</option>
-            <option value="CEARÁ">Ceará</option>
-            <option value="DISTRITO FEDERAL">Distrito Federal</option>
-            <option value="ESPIRITO SANTO">Espírito Santo</option>
-            <option value="GOIÁS">Goiás</option>
-            <option value="MARANHÃO">Maranhão</option>
-            <option value="MATO GROSSO">Mato Grosso</option>
-            <option value="MATO GROSSO SUL">Mato Grosso do Sul</option>
-            <option value="MINAS GERAIS">Minas Gerais</option>
-            <option value="PARANÁ">Paraná</option>
-            <option value="PARÁ">Pará</option>
-            <option value="PARAÍBA">Paraíba</option>
-            <option value="PERNAMBUCO">Pernambuco</option>
-            <option value="PIAUÍ">Piauí</option>
-            <option value="RIO DE JANEIRO">Rio de Janeiro</option>
-            <option value="RIO GRANDE NORTE">Rio Grande do Norte</option>
-            <option value="RIO GRANDE SUL">Rio Grande do Sul</option>
-            <option value="RONDÔNIA">Rondônia</option>
-            <option value="RORAIMA">Roraima</option>
-            <option value="SANTA CATARINA">Santa Catarina</option>
-            <option value="SÃO PAULO">São Paulo</option>
-            <option value="SERGIPE">Sergipe</option>
-            <option value="TOCANTINS">Tocantins</option>
-          </select>
-        </div>
-        <div>
-          <label for="geracao-${requerenteId}">Geração:</label>
-          <input type="number" id="geracao-${requerenteId}" name="geracao" min="1" required placeholder="Exemplo: 3 para trineto">
-        </div>
-      </div>
-    </div>
+      <input type="text" id="nome-${requerenteId}" required>
 
-    <hr />
-  `;
-
-  document
-    .getElementById("requerentes-container")
-    .insertAdjacentHTML("beforeend", formHtml);
+      <label for="estado-${requerenteId}">Estado:</label>
+      <select id="estado-${requerenteId}" required>
+        <option value="">Selecione um Estado</option>
+        ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+      </select>
+    </div><hr />`;
+  document.getElementById("requerentes-container").insertAdjacentHTML("beforeend", formHtml);
 }
 
+// Função para adicionar um novo compartilhado
+function adicionarCompartilhado() {
+  compartilhadoId++;
+  const formHtml = `
+    <div id="compartilhado-${compartilhadoId}" class="form-container">
+      <h4>Compartilhado ${compartilhadoId}</h4>
+      <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
+      <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
+
+      <div class="select">
+        <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
+        <select id="estado-compartilhado-${compartilhadoId}" required>
+          <option value="">Selecione um Estado</option>
+          ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
+        </select>
+      </div>
+    </div><hr />`;
+  document.getElementById("compartilhados-container").insertAdjacentHTML("beforeend", formHtml);
+}
+
+// Função para calcular todos os requerentes
 function calcularTodosRequerentes(cotacaoEuro) {
   const resultadosContainer = document.getElementById("resultados-container");
-  resultadosContainer.innerHTML = "";
+  resultadosContainer.innerHTML = ""; // Limpar resultados anteriores
 
-  const valorDocumentosOriginaisEuro = 100;
-  const valorDocumentosOriginais = valorDocumentosOriginaisEuro * cotacaoEuro;
-  const valorDocumentosPorRequerente = valorDocumentosOriginais / requerenteId;
+  // Calcula e exibe os valores compartilhados
+  const compartilhado = calcularCompartilhado(cotacaoEuro);
+  resultadosContainer.insertAdjacentHTML("beforeend", formatarResultadoCompartilhado(compartilhado));
 
+  // Divide o valor compartilhado pelo número de requerentes
+  const valorCompartilhadoPorRequerente = compartilhado.totalCompartilhado / requerenteId;
+
+  // Itera sobre todos os requerentes e exibe os resultados
   for (let i = 1; i <= requerenteId; i++) {
     const estado = document.getElementById(`estado-${i}`).value;
-    const geracao = parseInt(document.getElementById(`geracao-${i}`).value);
 
-    if (!estado || isNaN(geracao) || geracao < 1) {
-      alert(
-        `Por favor, preencha todos os campos corretamente para o Requerente ${i}.`
-      );
+    if (!estado) {
+      alert(`Preencha todos os campos do Requerente ${i}.`);
       continue;
     }
 
-    const resultados = calcularDocumentosEValores(
-      estado,
-      geracao,
-      valorDocumentosPorRequerente
+    const resultadoRequerente = calcularRequerente(estado);
+    resultadosContainer.insertAdjacentHTML(
+      "beforeend", 
+      formatarResultadoRequerente(i, resultadoRequerente, valorCompartilhadoPorRequerente)
     );
-
-    const resultadoHTML = `
-      <div>
-        <h4>Resultados para Requerente ${i}</h4>
-        <p>Quantidade de Documentos: ${resultados.qtdDocumentos}</p>
-        <p>Valor Certidões: R$ ${resultados.valorCertidoes.toFixed(2)}</p>
-        <p>Valor Traduções: R$ ${resultados.valorTraducoes.toFixed(2)}</p>
-        <p>Valor Apostilamentos: R$ ${resultados.valorApostilamentos.toFixed(
-          2
-        )}</p>
-        <p>Valor Total: R$ ${resultados.valorTotal.toFixed(2)}</p>
-        <hr />
-      </div>
-    `;
-
-    resultadosContainer.insertAdjacentHTML("beforeend", resultadoHTML);
   }
 }
 
-function calcularDocumentosEValores(estado, geracao, valorDocumentosPorRequerente) {
+// Função para calcular os valores compartilhados
+function calcularCompartilhado(cotacaoEuro) {
+  let totalCertidoes = 0, totalTraducoes = 0, totalApostilamentos = 0;
+
+  // Itera sobre todos os compartilhados para calcular os valores de acordo com o estado
+  for (let i = 1; i <= compartilhadoId; i++) {
+    const estado = document.getElementById(`estado-compartilhado-${i}`).value;
+
+    if (!estado) {
+      alert(`Preencha todos os campos do Compartilhado ${i}.`);
+      continue;
+    }
+
+    const { certidao, traducao, apostilamento } = estados[estado];
+
+    totalCertidoes += 2 * certidao; // 2 certidões por compartilhado
+    totalTraducoes += 2 * traducao; // 2 traduções por compartilhado
+    totalApostilamentos += 4 * apostilamento; // 4 apostilamentos por compartilhado
+  }
+
+  const valorCertidaoItaliana = 100 * cotacaoEuro; // Valor fixo da certidão italiana
+  const totalCompartilhado = totalCertidoes + totalTraducoes + totalApostilamentos + valorCertidaoItaliana;
+
+  return { 
+    valorCertidoes: totalCertidoes, 
+    valorTraducoes: totalTraducoes, 
+    valorApostilamentos: totalApostilamentos, 
+    valorCertidaoItaliana, 
+    totalCompartilhado 
+  };
+}
+
+// Função para calcular o custo de cada requerente sem a certidão italiana
+function calcularRequerente(estado) {
   const { certidao, traducao, apostilamento } = estados[estado];
 
-  const documentosSubsequentes = (geracao - 1) * 2;  // Documentos que precisam de tradução
-  const qtdDocumentos = 3 + documentosSubsequentes;  // Total de documentos, incluindo os 3 italianos
+  const valorCertidoes = 2 * certidao; // 2 certidões
+  const valorTraducoes = 2 * traducao; // 2 traduções
+  const valorApostilamentos = 4 * apostilamento; // 4 apostilamentos
 
-  // Apenas os documentos subsequentes precisam de tradução
-  const valorTraducoes = documentosSubsequentes * traducao;
+  const total = valorCertidoes + valorTraducoes + valorApostilamentos;
 
-  // Todos os documentos (inclusive os italianos) precisam de apostilamento
-  const valorApostilamentos = qtdDocumentos * 2 * apostilamento;
+  return { valorCertidoes, valorTraducoes, valorApostilamentos, total };
+}
 
-  // O valor das certidões subsequentes inclui os documentos subsequentes + valor dos 3 documentos originais
-  const valorCertidoesSubsequentes = documentosSubsequentes * certidao;
-  
-  // Valor total inclui documentos originais nas certidões e apostilamentos, mas não nas traduções
-  const valorTotal =
-    valorDocumentosPorRequerente + // Valor dos documentos originais (3 italianos)
-    valorCertidoesSubsequentes +  // Certidões para os documentos subsequentes
-    valorTraducoes +  // Traduções (apenas para os subsequentes)
-    valorApostilamentos;  // Apostilamentos para todos os documentos
+// Função para exibir os valores compartilhados
+function formatarResultadoCompartilhado(compartilhado) {
+  return `
+    <div class="compartilhado-container">
+      <h4>Valores Compartilhados</h4>
+      <p>Valor Certidões Brasileiras: R$ ${compartilhado.valorCertidoes.toFixed(2)}</p>
+      <p>Valor Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}</p>
+      <p>Valor Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}</p>
+      <p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>
+      <p><strong>Total Compartilhado:</strong> R$ ${compartilhado.totalCompartilhado.toFixed(2)}</p>
+      <hr />
+    </div>`;
+}
 
-  return {
-    qtdDocumentos,
-    valorCertidoes: valorCertidoesSubsequentes + valorDocumentosPorRequerente, // Inclui documentos italianos
-    valorTraducoes,  // Traduções apenas para os subsequentes
-    valorApostilamentos,  // Apostilamentos para todos os documentos
-    valorTotal,  // Total ajustado
-  };
+// Função para exibir os resultados de cada requerente
+function formatarResultadoRequerente(id, resultado, valorCompartilhadoPorRequerente) {
+  return `
+    <div class="requerente-container">
+      <h4>Requerente ${id}</h4>
+      <p>Valor Certidões Compartilhadas: R$ ${valorCompartilhadoPorRequerente.toFixed(2)}</p>
+      <p>Valor Certidões Brasileiras: R$ ${resultado.valorCertidoes.toFixed(2)}</p>
+      <p>Valor Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}</p>
+      <p>Valor Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}</p>
+      <p><strong>Valor Total:</strong> R$ ${(resultado.total + valorCompartilhadoPorRequerente).toFixed(2)}</p>
+      <hr />
+    </div>`;
 }

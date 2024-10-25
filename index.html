@@ -8,26 +8,36 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
   <title>Calculadora de Documentos</title>
 </head>
 
 <body>
   <div class="container">
-    <form id="form-principal" onsubmit="return false;">
-      <div id="requerentes-container"></div>
+    <div id="compartilhadas-container" class="compartilhadas">
+      <h3>Certidões Compartilhadas</h3>
+      <div id="compartilhados-container"></div>
+      <button id="add-compartilhado">Adicionar Pessoa</button>
+    </div>
 
+    <hr class="hr-html" />
+
+    <form id="form-principal" onsubmit="return false;">
+      <h3>Certidões Requerentes</h3>
+      <div id="requerentes-container"></div>
       <button id="add-requerente" type="button">Adicionar Requerente</button>
-      <button id="calcular" type="button">Calcular</button>
     </form>
 
     <hr class="hr-html" />
 
-    <div class="resultado">
-      <div id="resultados-container"></div>
-    </div>
+    <div id="resultados-container"></div>
+
+    <button id="calcular" class="btn-calcular">Calcular Tudo</button>
   </div>
+
 
   <script src="script.js"></script>
 </body>
