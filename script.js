@@ -1,4 +1,5 @@
 const estados = {
+  "ITALIA": {certidao: 100, traducao: 0, apostilamento: 0},
   "ACRE": { certidao: 224, traducao: 120, apostilamento: 95 },
   "ALAGOAS": { certidao: 173, traducao: 120, apostilamento: 95 },
   "AMAPÁ": { certidao: 213, traducao: 120, apostilamento: 95 },
@@ -65,9 +66,9 @@ function adicionarRequerente() {
         <h4>Requerente ${requerenteId}</h4>
         <label for="nome-${requerenteId}">Nome:</label>
         <input type="text" id="nome-${requerenteId}" required>
-        <label for="estado-${requerenteId}">Estado:</label>
+        <label for="estado-${requerenteId}">Localidade:</label>
         <select id="estado-${requerenteId}" required>
-          <option value="">Selecione um Estado</option>
+          <option value="">Selecione uma localidade</option>
           ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
         </select>
         <label for="estado-civil-${requerenteId}">Estado Civil:</label>
@@ -76,9 +77,9 @@ function adicionarRequerente() {
           <option value="casado">Casado(a)</option>
         </select>
         <div id="estado-casamento-container-${requerenteId}" style="display: none;">
-          <label for="estado-casamento-${requerenteId}">Estado do Casamento:</label>
+          <label for="estado-casamento-${requerenteId}">Localidade do Casamento:</label>
           <select id="estado-casamento-${requerenteId}">
-            <option value="">Selecione um Estado</option>
+            <option value="">Selecione um Localidade</option>
             ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
           </select>
         </div>
@@ -110,9 +111,9 @@ function adicionarFilho(requerenteId) {
   const filhoHtml = `
     <div id="filho-${requerenteId}-${filhoId}" class="filho-container">
       <h5>Filho ${filhoId}</h5>
-      <label for="estado-filho-${requerenteId}-${filhoId}">Estado de Nascimento:</label>
+      <label for="estado-filho-${requerenteId}-${filhoId}">Localidade do Nascimento:</label>
       <select id="estado-filho-${requerenteId}-${filhoId}" required>
-        <option value="">Selecione um Estado</option>
+        <option value="">Selecione uma localidade</option>
         ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
       </select>
     </div>`;
@@ -134,9 +135,9 @@ function adicionarCompartilhado() {
         <h4>Compartilhado ${compartilhadoId}</h4>
         <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
         <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
-        <label for="estado-compartilhado-${compartilhadoId}">Estado:</label>
+        <label for="estado-compartilhado-${compartilhadoId}">Localidade:</label>
         <select id="estado-compartilhado-${compartilhadoId}" required>
-          <option value="">Selecione um Estado</option>
+          <option value="">Selecione uma localidade</option>
           ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
         </select>
         <button class="button-remove" onclick="removerCompartilhado(${compartilhadoId})">
@@ -189,7 +190,8 @@ function calcularTodosRequerentes(cotacaoEuro) {
       continue;
     }
 
-    const resultadoRequerente = calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos);
+    // Passar o i (ID do requerente) corretamente
+    const resultadoRequerente = calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos, i);
     resultadosContainer.insertAdjacentHTML(
       "beforeend",
       formatarResultadoRequerente(i, resultadoRequerente, valorCompartilhadoPorRequerente)
@@ -199,6 +201,7 @@ function calcularTodosRequerentes(cotacaoEuro) {
 
 function calcularCompartilhado(cotacaoEuro) {
   let totalCertidoes = 0, totalTraducoes = 0, totalApostilamentos = 0;
+  let valorCertidaoItaliana = 0;
 
   for (let i = 1; i <= compartilhadoId; i++) {
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
@@ -210,12 +213,16 @@ function calcularCompartilhado(cotacaoEuro) {
 
     const { certidao, traducao, apostilamento } = estados[estado];
 
-    totalCertidoes += 2 * certidao;
-    totalTraducoes += 2 * traducao;
-    totalApostilamentos += 4 * apostilamento;
+    // Se o estado for "ITALIA", converte a certidão para reais
+    if (estado === "ITALIA") {
+      valorCertidaoItaliana += certidao * cotacaoEuro;
+    } else {
+      totalCertidoes += 2 * certidao;
+      totalTraducoes += 2 * traducao;
+      totalApostilamentos += 4 * apostilamento;
+    }
   }
 
-  const valorCertidaoItaliana = 100 * cotacaoEuro;
   const totalCompartilhado = totalCertidoes + totalTraducoes + totalApostilamentos + valorCertidaoItaliana;
 
   return { 
@@ -227,16 +234,14 @@ function calcularCompartilhado(cotacaoEuro) {
   };
 }
 
-function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos) {
+function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilhos, requerenteId) {
   let totalCertidoes = 0, totalTraducoes = 0, totalApostilamentos = 0;
 
-  // Valores iniciais para o requerente
   const { certidao, traducao, apostilamento } = estados[estado] || {};
   totalCertidoes += certidao || 0;
   totalTraducoes += traducao || 0;
   totalApostilamentos += 2 * (apostilamento || 0);
 
-  // Adicionar documentos do casamento se houver
   if (estadoCivil === "casado" && estadoCasamento) {
     const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
     totalCertidoes += certCas || 0;
@@ -244,7 +249,7 @@ function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilh
     totalApostilamentos += 2 * (aposCas || 0);
   }
 
-  // Adicionar documentos para cada filho, se houver
+  // Corrigir loop para filhos, garantindo que estamos usando o ID correto do requerente
   for (let i = 1; i <= quantidadeFilhos; i++) {
     const estadoFilho = document.getElementById(`estado-filho-${requerenteId}-${i}`)?.value;
     if (estadoFilho) {
@@ -283,7 +288,11 @@ function formatarResultadoCompartilhado(compartilhado) {
   return `
     <div>
       <h5>Compartilhado</h5>
-      <p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>
+      ${
+        compartilhado.valorCertidaoItaliana > 0
+          ? `<p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>`
+          : ""
+      }
       <p>Valor Certidões Brasileiras: R$ ${compartilhado.valorCertidoes.toFixed(2)}</p>
       <p>Valor Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}</p>
       <p>Valor Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}</p>
