@@ -49,9 +49,11 @@ document.getElementById("calcular").addEventListener("click", async function () 
 
 async function obterCotacaoEuro() {
   try {
-    const response = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
+    const response = await fetch(
+      "https://economia.awesomeapi.com.br/json/last/EUR-BRL"
+    );
     const data = await response.json();
-    return data.rates.BRL;
+    return data.EURBRL.bid;
   } catch (error) {
     console.error("Erro ao obter a cotação do Euro:", error);
     return null;
