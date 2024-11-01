@@ -159,6 +159,11 @@ h3{
     flex-direction: column;
   }
 
+  img{
+    width: 30%;
+    left: 36%;
+  }
+
   #requerentes-container, 
   #form-principal {
     width: 100%;
