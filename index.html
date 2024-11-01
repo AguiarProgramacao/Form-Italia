@@ -16,24 +16,28 @@
 </head>
 
 <body>
+  
   <div class="container">
-    <div id="compartilhadas-container" class="compartilhadas">
-      <h3>Certidões Compartilhadas</h3>
-      <div id="compartilhados-container"></div>
-      <button id="add-compartilhado">Adicionar Pessoa</button>
+    <img src="/assets/LOGO-IMIGREI-VETOR-VERDE-1.svg" alt="Logo">
+    <div class="container-form">
+      <div id="compartilhadas-container" class="compartilhadas">
+        <h3>Certidões Compartilhadas</h3>
+        <div id="compartilhados-container"></div>
+        <button id="add-compartilhado">Adicionar Pessoa</button>
+      </div>
+  
+      <hr class="hr-html" />
+  
+      <form id="form-principal" onsubmit="return false;">
+        <h3>Certidões Requerentes</h3>
+        <div id="requerentes-container"></div>
+        <button id="add-requerente" type="button">Adicionar Requerente</button>
+      </form>
+  
+      <hr class="hr-html" />
+  
+      <div id="resultados-container"></div>
     </div>
-
-    <hr class="hr-html" />
-
-    <form id="form-principal" onsubmit="return false;">
-      <h3>Certidões Requerentes</h3>
-      <div id="requerentes-container"></div>
-      <button id="add-requerente" type="button">Adicionar Requerente</button>
-    </form>
-
-    <hr class="hr-html" />
-
-    <div id="resultados-container"></div>
 
     <button id="calcular" class="btn-calcular">Calcular Tudo</button>
   </div>

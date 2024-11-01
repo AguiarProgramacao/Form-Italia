@@ -10,22 +10,38 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #e0e0e0;
+  background-color: #e3f1e4;
   padding: 10px;
 }
 
+img{
+  position: absolute;
+  top: 10px;
+  left: 45%;
+  width: 12%;
+}
+
 .container {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
   gap: 20px;
   padding: 30px;
   background-color: #fff;
+  border: 1px solid #2b612d;
   border-radius: 15px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 85%;
   min-height: 400px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.container-form{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 30px;
 }
 
 .form-container{
@@ -40,7 +56,7 @@ body {
 }
 
 .compartilhadas {
-  width: 150%;
+  width: 100%;
 }
 
 input, select {
