@@ -155,6 +155,10 @@ h3{
     padding: 20px;
   }
 
+  .container-form{
+    flex-direction: column;
+  }
+
   #requerentes-container, 
   #form-principal {
     width: 100%;
