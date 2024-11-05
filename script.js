@@ -121,27 +121,18 @@ function adicionarFilho(requerenteId) {
         ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
       </select>
     </div>`;
-  
+
   filhosContainer.insertAdjacentHTML("beforeend", filhoHtml);
 }
 
 function atualizarEstadoCasamento(requerenteId) {
   const estadoCivil = document.getElementById(`estado-civil-${requerenteId}`).value;
   const estadoCasamentoContainer = document.getElementById(`estado-casamento-container-${requerenteId}`);
-  
+
   estadoCasamentoContainer.style.display = (estadoCivil === "casado" || estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") 
     ? "block" 
     : "none";
 }
-
-const formHtml = `
-  <select id="estado-civil-${requerenteId}" required onchange="atualizarEstadoCasamento(${requerenteId})">
-    <option value="solteiro">Solteiro(a)</option>
-    <option value="casado">Casado(a)</option>
-    <option value="divorcioJudicial">Divórcio Judicial</option>
-    <option value="divorcioAdministrativo">Divórcio Administrativo</option>
-  </select>
-`;
 
 function adicionarCompartilhado() {
   compartilhadoId++;
@@ -151,24 +142,18 @@ function adicionarCompartilhado() {
         <h4>Compartilhado ${compartilhadoId}</h4>
         <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
         <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
-        
         <label for="estado-compartilhado-${compartilhadoId}">Localidade:</label>
-        <select id="estado-compartilhado-${compartilhadoId}" required onchange="atualizarVisibilidadeEstadoCivilCompartilhado(${compartilhadoId})">
+        <select id="estado-compartilhado-${compartilhadoId}" required>
           <option value="">Selecione uma localidade</option>
           ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
         </select>
-        
-        <!-- Envolvemos o label e o select de estado civil em uma div -->
-        <div id="estado-civil-container-compartilhado-${compartilhadoId}">
-          <label for="estado-civil-compartilhado-${compartilhadoId}">Estado Civil:</label>
-          <select id="estado-civil-compartilhado-${compartilhadoId}" required onchange="atualizarEstadoCasamentoCompartilhado(${compartilhadoId})">
-            <option value="solteiro">Solteiro(a)</option>
-            <option value="casado">Casado(a)</option>
-            <option value="divorcioJudicial">Divórcio Judicial</option>
-            <option value="divorcioAdministrativo">Divórcio Administrativo</option>
-          </select>
-        </div>
-
+        <label for="estado-civil-compartilhado-${compartilhadoId}">Estado Civil:</label>
+        <select id="estado-civil-compartilhado-${compartilhadoId}" required onchange="atualizarEstadoCasamentoCompartilhado(${compartilhadoId})">
+          <option value="solteiro">Solteiro(a)</option>
+          <option value="casado">Casado(a)</option>
+          <option value="divorcioJudicial">Divórcio Judicial</option>
+          <option value="divorcioAdministrativo">Divórcio Administrativo</option>
+        </select>
         <div id="estado-casamento-container-compartilhado-${compartilhadoId}" style="display: none;">
           <label for="estado-casamento-compartilhado-${compartilhadoId}">Localidade do Casamento:</label>
           <select id="estado-casamento-compartilhado-${compartilhadoId}">
@@ -176,7 +161,6 @@ function adicionarCompartilhado() {
             ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
           </select>
         </div>
-        
         <button class="button-remove" onclick="removerCompartilhado(${compartilhadoId})">
           <i class="fa-solid fa-trash"></i>
         </button>
@@ -190,20 +174,10 @@ function adicionarCompartilhado() {
 function atualizarEstadoCasamentoCompartilhado(compartilhadoId) {
   const estadoCivil = document.getElementById(`estado-civil-compartilhado-${compartilhadoId}`).value;
   const estadoCasamentoContainer = document.getElementById(`estado-casamento-container-compartilhado-${compartilhadoId}`);
-  
+
   estadoCasamentoContainer.style.display = (estadoCivil === "casado" || estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") 
     ? "block" 
     : "none";
-
-  atualizarVisibilidadeEstadoCivilCompartilhado(compartilhadoId);
-}
-
-function atualizarVisibilidadeEstadoCivilCompartilhado(compartilhadoId) {
-  const localidade = document.getElementById(`estado-compartilhado-${compartilhadoId}`).value;
-  const estadoCivilContainer = document.getElementById(`estado-civil-container-compartilhado-${compartilhadoId}`);
-  
-  // Esconde toda a div de Estado Civil se a localidade for ITALIA
-  estadoCivilContainer.style.display = (localidade === "ITALIA") ? "none" : "block";
 }
 
 function removerCompartilhado(id) {
@@ -217,7 +191,7 @@ function removerCompartilhado(id) {
 
 function atualizarNumeracao(containerId, tipo) {
   const container = document.getElementById(containerId);
-  const itens = container.querySelectorAll(`.form-container`);
+  const itens = container.querySelectorAll(".form-container");
 
   itens.forEach((item, index) => {
     const titulo = item.querySelector("h4");
@@ -258,7 +232,8 @@ function calcularCompartilhado(cotacaoEuro) {
   let totalCertidoesCasamento = 0;
   let totalTraducoes = 0;
   let totalApostilamentos = 0;
-  let valorCertidaoItaliana = 0;
+  let valorCertidaoNascimentoItaliana = 0;
+  let valorCertidaoCasamentoItaliana = 0;
 
   for (let i = 1; i <= compartilhadoId; i++) {
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
@@ -266,7 +241,7 @@ function calcularCompartilhado(cotacaoEuro) {
     const estadoCasamento = document.getElementById(`estado-casamento-compartilhado-${i}`)?.value;
 
     if (estado === "ITALIA") { 
-      valorCertidaoItaliana += estados[estado].certidao * cotacaoEuro;
+      valorCertidaoNascimentoItaliana += estados[estado].certidao * cotacaoEuro;
     } else {
       const { certidao, traducao, apostilamento } = estados[estado] || {};
       totalCertidoesNascimento += certidao || 0;
@@ -275,11 +250,14 @@ function calcularCompartilhado(cotacaoEuro) {
     }
 
     if (estadoCivil === "casado" && estadoCasamento) {
-      const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
-      totalCertidoesCasamento += certCas || 0;
-      totalTraducoes += tradCas || 0;
-      totalApostilamentos += 2 * (aposCas || 0);
-
+      if (estadoCasamento === "ITALIA") {
+        valorCertidaoCasamentoItaliana += estados[estadoCasamento].certidao * cotacaoEuro;
+      } else {
+        const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
+        totalCertidoesCasamento += certCas || 0;
+        totalTraducoes += tradCas || 0;
+        totalApostilamentos += 2 * (aposCas || 0);
+      }
     } else if (estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") {
       const multiplicador = estadoCivil === "divorcioJudicial" ? 4 : 2;
       const { certidao: certDiv, traducao: tradDiv, apostilamento: aposDiv } = estados[estadoCasamento] || {};
@@ -289,14 +267,15 @@ function calcularCompartilhado(cotacaoEuro) {
     }
   }
 
-  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoItaliana;
+  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana;
 
   return { 
     valorCertidoesNascimento: totalCertidoesNascimento, 
     valorCertidoesCasamento: totalCertidoesCasamento, 
     valorTraducoes: totalTraducoes, 
     valorApostilamentos: totalApostilamentos, 
-    valorCertidaoItaliana, 
+    valorCertidaoNascimentoItaliana,
+    valorCertidaoCasamentoItaliana,
     totalCompartilhado 
   };
 }
@@ -374,7 +353,8 @@ function formatarResultadoCompartilhado(compartilhado) {
   return `
     <div>
       <h5>Compartilhado</h5>
-      ${compartilhado.valorCertidaoItaliana > 0 ? `<p>Valor Certidão Italiana: R$ ${compartilhado.valorCertidaoItaliana.toFixed(2)}</p>` : ""}
+      ${compartilhado.valorCertidaoNascimentoItaliana ? `<p>Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}</p>` : ""}
+      ${compartilhado.valorCertidaoCasamentoItaliana ? `<p>Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}</p>` : ""}
       <p>Valor Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}</p>
       <p>Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}</p>
       <p>Valor Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}</p>
