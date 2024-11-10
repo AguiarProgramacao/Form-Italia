@@ -142,11 +142,13 @@ function adicionarCompartilhado() {
         <h4>Compartilhado ${compartilhadoId}</h4>
         <label for="nome-compartilhado-${compartilhadoId}">Nome:</label>
         <input type="text" id="nome-compartilhado-${compartilhadoId}" required>
+        
         <label for="estado-compartilhado-${compartilhadoId}">Localidade:</label>
         <select id="estado-compartilhado-${compartilhadoId}" required>
           <option value="">Selecione uma localidade</option>
           ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
         </select>
+        
         <label for="estado-civil-compartilhado-${compartilhadoId}">Estado Civil:</label>
         <select id="estado-civil-compartilhado-${compartilhadoId}" required onchange="atualizarEstadoCasamentoCompartilhado(${compartilhadoId})">
           <option value="solteiro">Solteiro(a)</option>
@@ -154,6 +156,7 @@ function adicionarCompartilhado() {
           <option value="divorcioJudicial">Divórcio Judicial</option>
           <option value="divorcioAdministrativo">Divórcio Administrativo</option>
         </select>
+        
         <div id="estado-casamento-container-compartilhado-${compartilhadoId}" style="display: none;">
           <label for="estado-casamento-compartilhado-${compartilhadoId}">Localidade do Casamento:</label>
           <select id="estado-casamento-compartilhado-${compartilhadoId}">
@@ -161,6 +164,10 @@ function adicionarCompartilhado() {
             ${Object.keys(estados).map(estado => `<option value="${estado}">${estado}</option>`).join('')}
           </select>
         </div>
+        
+        <label for="procuracoes-compartilhado-${compartilhadoId}">Procurações:</label>
+        <input type="number" id="procuracoes-compartilhado-${compartilhadoId}" value="1" min="1">
+        
         <button class="button-remove" onclick="removerCompartilhado(${compartilhadoId})">
           <i class="fa-solid fa-trash"></i>
         </button>
@@ -228,6 +235,7 @@ function calcularTodosRequerentes(cotacaoEuro) {
 }
 
 function calcularCompartilhado(cotacaoEuro) {
+  const valorCNN = 200; // Valor fixo CNN
   let totalCertidoesNascimento = 0;
   let totalCertidoesCasamento = 0;
   let totalTraducoes = 0;
@@ -239,35 +247,39 @@ function calcularCompartilhado(cotacaoEuro) {
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
     const estadoCivil = document.getElementById(`estado-civil-compartilhado-${i}`).value;
     const estadoCasamento = document.getElementById(`estado-casamento-compartilhado-${i}`)?.value;
+    const procurações = parseInt(document.getElementById(`procuracoes-compartilhado-${i}`).value) || 1;
 
+    // Verifica o estado e aplica o cálculo conforme a localidade
     if (estado === "ITALIA") { 
       valorCertidaoNascimentoItaliana += estados[estado].certidao * cotacaoEuro;
     } else {
       const { certidao, traducao, apostilamento } = estados[estado] || {};
       totalCertidoesNascimento += certidao || 0;
-      totalTraducoes += traducao || 0;
-      totalApostilamentos += 2 * (apostilamento || 0);
+      totalTraducoes += (traducao || 0) * procurações;  // Multiplica traduções pelo número de procurações
+      totalApostilamentos += 2 * (apostilamento || 0) * procurações;  // Multiplica apostilamentos pelo número de procurações
     }
 
+    // Calcula certidões de casamento ou divórcio se aplicável
     if (estadoCivil === "casado" && estadoCasamento) {
       if (estadoCasamento === "ITALIA") {
         valorCertidaoCasamentoItaliana += estados[estadoCasamento].certidao * cotacaoEuro;
       } else {
         const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
         totalCertidoesCasamento += certCas || 0;
-        totalTraducoes += tradCas || 0;
-        totalApostilamentos += 2 * (aposCas || 0);
+        totalTraducoes += (tradCas || 0) * procurações;  // Multiplica traduções do casamento pelo número de procurações
+        totalApostilamentos += 2 * (aposCas || 0) * procurações;  // Multiplica apostilamentos do casamento pelo número de procurações
       }
     } else if (estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") {
       const multiplicador = estadoCivil === "divorcioJudicial" ? 4 : 2;
       const { certidao: certDiv, traducao: tradDiv, apostilamento: aposDiv } = estados[estadoCasamento] || {};
       totalCertidoesCasamento += multiplicador * (certDiv || 0);
-      totalTraducoes += multiplicador * (tradDiv || 0);
-      totalApostilamentos += multiplicador * 2 * (aposDiv || 0);
+      totalTraducoes += multiplicador * (tradDiv || 0) * procurações;  // Multiplica traduções do divórcio pelo número de procurações
+      totalApostilamentos += multiplicador * 2 * (aposDiv || 0) * procurações;  // Multiplica apostilamentos do divórcio pelo número de procurações
     }
   }
 
-  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana;
+  // Adiciona o valor fixo CNN ao total
+  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana + valorCNN;
 
   return { 
     valorCertidoesNascimento: totalCertidoesNascimento, 
