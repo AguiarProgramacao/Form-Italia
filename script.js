@@ -166,7 +166,7 @@ function adicionarCompartilhado() {
         </div>
         
         <label for="procuracoes-compartilhado-${compartilhadoId}">Procurações:</label>
-        <input type="number" id="procuracoes-compartilhado-${compartilhadoId}" value="1" min="1">
+        <input type="number" id="procuracoes-compartilhado-${compartilhadoId}" value="0" min="0">
         
         <button class="button-remove" onclick="removerCompartilhado(${compartilhadoId})">
           <i class="fa-solid fa-trash"></i>
@@ -235,11 +235,12 @@ function calcularTodosRequerentes(cotacaoEuro) {
 }
 
 function calcularCompartilhado(cotacaoEuro) {
-  const valorCNN = 200; // Valor fixo CNN
+  const valorCNNTraducao = 120;
+  const valorCNNApostilamento = 2 * 95;
   let totalCertidoesNascimento = 0;
   let totalCertidoesCasamento = 0;
-  let totalTraducoes = 0;
-  let totalApostilamentos = 0;
+  let totalTraducoes = valorCNNTraducao;
+  let totalApostilamentos = valorCNNApostilamento;
   let valorCertidaoNascimentoItaliana = 0;
   let valorCertidaoCasamentoItaliana = 0;
 
@@ -247,39 +248,38 @@ function calcularCompartilhado(cotacaoEuro) {
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
     const estadoCivil = document.getElementById(`estado-civil-compartilhado-${i}`).value;
     const estadoCasamento = document.getElementById(`estado-casamento-compartilhado-${i}`)?.value;
-    const procurações = parseInt(document.getElementById(`procuracoes-compartilhado-${i}`).value) || 1;
+    const procurações = parseInt(document.getElementById(`procuracoes-compartilhado-${i}`).value) || 0;
 
-    // Verifica o estado e aplica o cálculo conforme a localidade
+    const multiplicador = procurações > 0 ? procurações + 1 : 1;
+
     if (estado === "ITALIA") { 
       valorCertidaoNascimentoItaliana += estados[estado].certidao * cotacaoEuro;
     } else {
       const { certidao, traducao, apostilamento } = estados[estado] || {};
       totalCertidoesNascimento += certidao || 0;
-      totalTraducoes += (traducao || 0) * procurações;  // Multiplica traduções pelo número de procurações
-      totalApostilamentos += 2 * (apostilamento || 0) * procurações;  // Multiplica apostilamentos pelo número de procurações
+      totalTraducoes += (traducao || 0) * multiplicador;
+      totalApostilamentos += 2 * (apostilamento || 0) * multiplicador;
     }
 
-    // Calcula certidões de casamento ou divórcio se aplicável
     if (estadoCivil === "casado" && estadoCasamento) {
       if (estadoCasamento === "ITALIA") {
         valorCertidaoCasamentoItaliana += estados[estadoCasamento].certidao * cotacaoEuro;
       } else {
         const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
         totalCertidoesCasamento += certCas || 0;
-        totalTraducoes += (tradCas || 0) * procurações;  // Multiplica traduções do casamento pelo número de procurações
-        totalApostilamentos += 2 * (aposCas || 0) * procurações;  // Multiplica apostilamentos do casamento pelo número de procurações
+        totalTraducoes += (tradCas || 0) * multiplicador;
+        totalApostilamentos += 2 * (aposCas || 0) * multiplicador;
       }
     } else if (estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") {
-      const multiplicador = estadoCivil === "divorcioJudicial" ? 4 : 2;
+      const multiplicadorDiv = estadoCivil === "divorcioJudicial" ? 4 : 2;
       const { certidao: certDiv, traducao: tradDiv, apostilamento: aposDiv } = estados[estadoCasamento] || {};
-      totalCertidoesCasamento += multiplicador * (certDiv || 0);
-      totalTraducoes += multiplicador * (tradDiv || 0) * procurações;  // Multiplica traduções do divórcio pelo número de procurações
-      totalApostilamentos += multiplicador * 2 * (aposDiv || 0) * procurações;  // Multiplica apostilamentos do divórcio pelo número de procurações
+      totalCertidoesCasamento += multiplicadorDiv * (certDiv || 0);
+      totalTraducoes += multiplicadorDiv * (tradDiv || 0) * multiplicador;
+      totalApostilamentos += multiplicadorDiv * 2 * (aposDiv || 0) * multiplicador;
     }
   }
 
-  // Adiciona o valor fixo CNN ao total
-  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana + valorCNN;
+  const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana;
 
   return { 
     valorCertidoesNascimento: totalCertidoesNascimento, 
