@@ -358,6 +358,7 @@ function formatarResultadoRequerente(id, resultado, valorCompartilhadoPorRequere
       <p><strong>Valor Total com Compartilhado: R$ ${totalComCompartilhado.toFixed(2)}</strong></p>
     </div>
     <hr/>
+    <a href="pdf.html">Gerar PDF</a>
   `;
 }
 
@@ -376,3 +377,79 @@ function formatarResultadoCompartilhado(compartilhado) {
     <hr/>
   `;
 }
+
+function gerarPDF() {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'landscape' });
+  const nomePrimeiroRequerente = document.getElementById("nome-1").value || "Requerente1";
+
+  // Página 1: Fundo colorido e logotipo
+  pdf.setFillColor("#e3f1e4"); // Cor de fundo
+  pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F'); // Desenha o retângulo de fundo
+
+  // Carregue a imagem do logotipo (substitua 'logoUrl' pela URL ou caminho da sua imagem)
+  const logoUrl = '/assets/Logo.png';
+  
+  // Carregue a imagem em base64
+  const logo = new Image();
+  logo.src = logoUrl;
+  logo.onload = function () {
+    const logoWidth = 100;
+    const logoHeight = 30;
+    const centerX = (pdf.internal.pageSize.width - logoWidth) / 2;
+    const centerY = (pdf.internal.pageSize.height - logoHeight) / 2;
+
+    // Adiciona a imagem do logotipo ao centro da página
+    pdf.addImage(logo, 'PNG', centerX, centerY, logoWidth, logoHeight);
+
+    // Adicione a segunda página com os cálculos
+    pdf.addPage(); // Cria uma nova página (padrão é retrato, mas a orientação será definida automaticamente conforme o conteúdo)
+    pdf.setFontSize(18);
+    pdf.text("Resumo do Cálculo de Cidadania Italiana", 10, 10);
+
+    // Dados do Compartilhado
+    const compartilhado = calcularCompartilhado(1);
+    pdf.setFontSize(14);
+    pdf.text("Valores Compartilhados", 10, 30);
+    pdf.setFontSize(12);
+    pdf.text(`Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}`, 10, 40);
+    pdf.text(`Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}`, 10, 50);
+    pdf.text(`Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}`, 10, 60);
+    pdf.text(`Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}`, 10, 70);
+    pdf.text(`Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}`, 10, 80);
+    pdf.text(`Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}`, 10, 90);
+    pdf.text(`Total Compartilhado: R$ ${compartilhado.totalCompartilhado.toFixed(2)}`, 10, 100);
+
+    let altura = 110;
+    for (let i = 1; i <= requerenteId; i++) {
+      const nomeRequerente = document.getElementById(`nome-${i}`).value || `Requerente ${i}`;
+      const resultado = calcularRequerente(
+        document.getElementById(`estado-${i}`).value,
+        document.getElementById(`estado-casamento-${i}`)?.value,
+        document.getElementById(`estado-civil-${i}`).value,
+        document.getElementById(`filhos-container-${i}`)?.childElementCount || 0,
+        i
+      );
+
+      pdf.setFontSize(14);
+      pdf.text(`Requerente: ${nomeRequerente}`, 10, altura);
+      altura += 10;
+      pdf.setFontSize(12);
+      pdf.text(`Certidões Nascimento: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}`, 10, altura);
+      altura += 10;
+      pdf.text(`Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}`, 10, altura);
+      altura += 10;
+      pdf.text(`Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}`, 10, altura);
+      altura += 10;
+      pdf.text(`Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}`, 10, altura);
+      altura += 10;
+      pdf.text(`Total do Requerente: R$ ${resultado.totalRequerente.toFixed(2)}`, 10, altura);
+      altura += 20;
+    }
+
+    // Salva o PDF
+    pdf.save(`Resumo_Calculo_${nomePrimeiroRequerente}.pdf`);
+  };
+}
+
+document.getElementById("btn-gerar-pdf").addEventListener("click", gerarPDF);
