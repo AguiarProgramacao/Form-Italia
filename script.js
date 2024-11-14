@@ -398,11 +398,11 @@ function gerarPDF() {
   const pageHeight = pdf.internal.pageSize.getHeight();
 
   // Página 1 com imagem de fundo e texto personalizado
-  addBackgroundImage(pdf, '/assets/teste.png', pageWidth, pageHeight, () => {
+  addBackgroundImage(pdf, '/assets/1.png', pageWidth, pageHeight, () => {
     pdf.setFont("Arial", "bold");
-    pdf.setFontSize(50);
+    pdf.setFontSize(42);
     pdf.setTextColor("#000000");
-    pdf.text(`${nomePrimeiroRequerente}`, 110, 95);
+    pdf.text(`${nomePrimeiroRequerente}`, 80, 65);
 
     // Página 2 com imagem de fundo
     pdf.addPage();
@@ -412,53 +412,52 @@ function gerarPDF() {
       pdf.addPage();
       addBackgroundImage(pdf, '/assets/page3.png', pageWidth, pageHeight, () => {
 
-        // Página 4 com cálculo detalhado
         pdf.addPage();
-        pdf.setFontSize(18);
-        pdf.text("Resumo do Cálculo de Cidadania Italiana", 10, 10);
+        addBackgroundImage(pdf, '/assets/page4.png', pageWidth, pageHeight, () => {
+          
+          pdf.addPage();
+          addBackgroundImage(pdf, '/assets/page calculadora.png', pageWidth, pageHeight, () => {
 
-        // Dados do Compartilhado
-        const compartilhado = calcularCompartilhado(1);
-        pdf.setFontSize(14);
-        pdf.text("Valores Compartilhados", 10, 30);
-        pdf.setFontSize(12);
-        pdf.text(`Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}`, 10, 40);
-        pdf.text(`Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}`, 10, 50);
-        pdf.text(`Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}`, 10, 60);
-        pdf.text(`Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}`, 10, 70);
-        pdf.text(`Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}`, 10, 80);
-        pdf.text(`Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}`, 10, 90);
-        pdf.text(`Total Compartilhado: R$ ${compartilhado.totalCompartilhado.toFixed(2)}`, 10, 100);
+            // Dados do Compartilhado
+            const compartilhado = calcularCompartilhado(1);
+            pdf.setFontSize(30);
+            pdf.text("Valores Compartilhados", 20, 50);
+            pdf.setFontSize(16);
+            pdf.text(`Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}`, 10, 70);
+            pdf.text(`Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}`, 10, 85);
+            pdf.text(`Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}`, 10, 101);
+            pdf.text(`Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}`, 10, 118);
+            pdf.text(`Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}`, 10, 135);
+            pdf.text(`Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}`, 10, 152);
+            pdf.text(`Total Compartilhado: R$ ${compartilhado.totalCompartilhado.toFixed(2)}`, 10, 169);
 
-        let altura = 110;
-        for (let i = 1; i <= requerenteId; i++) {
-          const nomeRequerente = document.getElementById(`nome-${i}`).value || `Requerente ${i}`;
-          const resultado = calcularRequerente(
-            document.getElementById(`estado-${i}`).value,
-            document.getElementById(`estado-casamento-${i}`)?.value,
-            document.getElementById(`estado-civil-${i}`).value,
-            document.getElementById(`filhos-container-${i}`)?.childElementCount || 0,
-            i
-          );
+            let altura = 70;
+            for (let i = 1; i <= requerenteId; i++) {
+              const nomeRequerente = document.getElementById(`nome-${i}`).value || `Requerente ${i}`;
+              const resultado = calcularRequerente(
+                document.getElementById(`estado-${i}`).value,
+                document.getElementById(`estado-casamento-${i}`)?.value,
+                document.getElementById(`estado-civil-${i}`).value,
+                document.getElementById(`filhos-container-${i}`)?.childElementCount || 0,
+                i
+              );
 
-          pdf.setFontSize(14);
-          pdf.text(`Requerente: ${nomeRequerente}`, 10, altura);
-          altura += 10;
-          pdf.setFontSize(12);
-          pdf.text(`Certidões Nascimento: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}`, 10, altura);
-          altura += 10;
-          pdf.text(`Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}`, 10, altura);
-          altura += 10;
-          pdf.text(`Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}`, 10, altura);
-          altura += 10;
-          pdf.text(`Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}`, 10, altura);
-          altura += 10;
-          pdf.text(`Total do Requerente: R$ ${resultado.totalRequerente.toFixed(2)}`, 10, altura);
-          altura += 20;
-        }
+              pdf.setFontSize(16);
+              pdf.setTextColor("#FFFFFF");
+              pdf.text(`Requerente: ${nomeRequerente}`, 155, altura);
+              altura += 10;
+              pdf.setFontSize(16);
+              pdf.text(`Certidões Nascimento: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}`, 155, 85);
+              pdf.text(`Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}`, 155, 101);
+              pdf.text(`Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}`, 155, 118);
+              pdf.text(`Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}`, 155, 135);
+              pdf.text(`Total do Requerente: R$ ${resultado.totalRequerente.toFixed(2)}`, 155, 152);
+            }
 
-        // Salva o PDF
-        pdf.save(`Resumo_Calculo_${nomePrimeiroRequerente}.pdf`);
+            // Salva o PDF
+            pdf.save(`Resumo_Calculo_${nomePrimeiroRequerente}.pdf`);
+          });
+        });
       });
     });
   });
