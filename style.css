@@ -1,0 +1,78 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.btn{
+  border: none;
+  background-color: transparent;
+}
+
+body{
+  background-image: url("/assets/BG-MOBI-contato.webp");
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.bg-um{
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.req-container{
+  background-color: #FFF;
+  height: 450px;
+  border-top: 2px solid #2b612d;
+  border-radius: 8px;
+  padding: 3% 4%;
+  display: flex;
+}
+
+.container-um{
+  width: 100%;
+}
+
+.passos{
+  background-color: #e3f1e4;
+  padding: 5px;
+  border-radius: 5px;
+  width: 180px;
+}
+
+.btn-passo-um{
+  padding: 10px 15px;
+  background-color: #2b612d;
+  font-size: 15px;
+  color: #FFF;
+  border-radius: 5px;
+  margin-right: 20px;
+}
+
+.desc-req{
+  margin-top: 35px;
+}
+
+.desc-req h3{
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.formulario{
+  border: 1px solid #ccc;
+}
+
+input, select {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+label{
+  font-size: 16px;
+  color: #000;
+}

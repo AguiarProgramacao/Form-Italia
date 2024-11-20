@@ -31,6 +31,7 @@ const estados = {
 
 let requerenteId = 0;
 let compartilhadoId = 0;
+let cotacaoEuroGlobal;
 
 adicionarRequerente();
 adicionarCompartilhado();
@@ -44,6 +45,8 @@ document.getElementById("calcular").addEventListener("click", async function () 
     alert("Não foi possível obter a cotação do Euro. Tente novamente mais tarde.");
     return;
   }
+
+  cotacaoEuroGlobal = parseFloat(cotacaoEuro);
   calcularTodosRequerentes(cotacaoEuro);
 });
 
@@ -244,7 +247,13 @@ function calcularCompartilhado(cotacaoEuro) {
   let valorCertidaoNascimentoItaliana = 0;
   let valorCertidaoCasamentoItaliana = 0;
 
+  let contadorDocumentos = {
+    italianos: 0,
+    brasileiros: 0,
+  };
+
   for (let i = 1; i <= compartilhadoId; i++) {
+    const nome = document.getElementById(`nome-compartilhado-${i}`).value || `Pessoa ${i}`;
     const estado = document.getElementById(`estado-compartilhado-${i}`).value;
     const estadoCivil = document.getElementById(`estado-civil-compartilhado-${i}`).value;
     const estadoCasamento = document.getElementById(`estado-casamento-compartilhado-${i}`)?.value;
@@ -252,23 +261,27 @@ function calcularCompartilhado(cotacaoEuro) {
 
     const multiplicador = procurações > 0 ? procurações + 1 : 1;
 
-    if (estado === "ITALIA") { 
+    if (estado === "ITALIA") {
       valorCertidaoNascimentoItaliana += estados[estado].certidao * cotacaoEuro;
+      contadorDocumentos.italianos += 1;
     } else {
       const { certidao, traducao, apostilamento } = estados[estado] || {};
       totalCertidoesNascimento += certidao || 0;
       totalTraducoes += (traducao || 0) * multiplicador;
       totalApostilamentos += 2 * (apostilamento || 0) * multiplicador;
+      contadorDocumentos.brasileiros += 1;
     }
 
     if (estadoCivil === "casado" && estadoCasamento) {
       if (estadoCasamento === "ITALIA") {
         valorCertidaoCasamentoItaliana += estados[estadoCasamento].certidao * cotacaoEuro;
+        contadorDocumentos.italianos += 1;
       } else {
         const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
         totalCertidoesCasamento += certCas || 0;
         totalTraducoes += (tradCas || 0) * multiplicador;
         totalApostilamentos += 2 * (aposCas || 0) * multiplicador;
+        contadorDocumentos.brasileiros += 1;
       }
     } else if (estadoCivil === "divorcioJudicial" || estadoCivil === "divorcioAdministrativo") {
       const multiplicadorDiv = estadoCivil === "divorcioJudicial" ? 4 : 2;
@@ -276,10 +289,12 @@ function calcularCompartilhado(cotacaoEuro) {
       totalCertidoesCasamento += multiplicadorDiv * (certDiv || 0);
       totalTraducoes += multiplicadorDiv * (tradDiv || 0) * multiplicador;
       totalApostilamentos += multiplicadorDiv * 2 * (aposDiv || 0) * multiplicador;
+      contadorDocumentos.brasileiros += multiplicadorDiv;
     }
   }
 
   const totalCompartilhado = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos + valorCertidaoNascimentoItaliana + valorCertidaoCasamentoItaliana;
+  const totalDocumentosCompartilhado = contadorDocumentos.italianos + contadorDocumentos.brasileiros;
 
   return { 
     valorCertidoesNascimento: totalCertidoesNascimento, 
@@ -288,6 +303,8 @@ function calcularCompartilhado(cotacaoEuro) {
     valorApostilamentos: totalApostilamentos, 
     valorCertidaoNascimentoItaliana,
     valorCertidaoCasamentoItaliana,
+    contadorDocumentos,
+    totalDocumentosCompartilhado,
     totalCompartilhado 
   };
 }
@@ -297,28 +314,25 @@ function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilh
   let totalCertidoesCasamento = 0;
   let totalTraducoes = 0;
   let totalApostilamentos = 0;
+  let contadorDocumentos = 0;
 
   const { certidao: certNascimento, traducao, apostilamento } = estados[estado] || {};
   
   totalCertidoesNascimento += certNascimento || 0;
   totalTraducoes += traducao || 0;
   totalApostilamentos += 2 * (apostilamento || 0);
+  contadorDocumentos++;
 
   if (estadoCivil === "casado" && estadoCasamento) {
     const { certidao: certCas, traducao: tradCas, apostilamento: aposCas } = estados[estadoCasamento] || {};
     totalCertidoesCasamento += certCas || 0;
     totalTraducoes += tradCas || 0;
     totalApostilamentos += 2 * (aposCas || 0);
+    contadorDocumentos++;
   } else if (estadoCivil === "divorcioJudicial") {
-    const { certidao: certDivorcio, traducao: tradDivorcio, apostilamento: aposDivorcio } = estados[estadoCasamento] || {};
-    totalCertidoesCasamento += 4 * (certDivorcio || 0);
-    totalTraducoes += 4 * (tradDivorcio || 0);
-    totalApostilamentos += 8 * (aposDivorcio || 0);
+    contadorDocumentos += 4;
   } else if (estadoCivil === "divorcioAdministrativo") {
-    const { certidao: certDivorcioAdm, traducao: tradDivorcioAdm, apostilamento: aposDivorcioAdm } = estados[estadoCasamento] || {};
-    totalCertidoesCasamento += 2 * (certDivorcioAdm || 0);
-    totalTraducoes += 2 * (tradDivorcioAdm || 0);
-    totalApostilamentos += 4 * (aposDivorcioAdm || 0);
+    contadorDocumentos += 2;
   }
 
   for (let i = 1; i <= quantidadeFilhos; i++) {
@@ -328,44 +342,48 @@ function calcularRequerente(estado, estadoCasamento, estadoCivil, quantidadeFilh
       totalCertidoesNascimento += certFilho || 0;
       totalTraducoes += tradFilho || 0;
       totalApostilamentos += 2 * (aposFilho || 0);
+      contadorDocumentos++;
     }
   }
 
   const totalRequerente = totalCertidoesNascimento + totalCertidoesCasamento + totalTraducoes + totalApostilamentos;
 
   return {
+    totalDocumentos: contadorDocumentos,
     valorCertidoesNascimento: totalCertidoesNascimento,
     valorCertidoesCasamento: totalCertidoesCasamento,
     valorTraducoes: totalTraducoes,
     valorApostilamentos: totalApostilamentos,
-    totalRequerente: totalRequerente,
+    totalRequerente,
   };
 }
 
+
 function formatarResultadoRequerente(id, resultado, valorCompartilhadoPorRequerente) {
   const nomeRequerente = document.getElementById(`nome-${id}`).value || `Requerente ${id}`;
-
-  const totalComCompartilhado = resultado.totalRequerente + valorCompartilhadoPorRequerente;
+  const totalDocumentos = resultado.totalDocumentos;
 
   return `
     <div>
       <h3>${nomeRequerente}</h3>
+      <p><strong>Quantidade Total de Documentos: ${totalDocumentos}</strong></p>
       <p>Valor Compartilhado: R$ ${valorCompartilhadoPorRequerente.toFixed(2)}</p>
       <p>Valor Certidões Nascimentos: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}</p>
       <p>Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}</p>
       <p>Valor Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}</p>
       <p>Valor Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}</p>
-      <p><strong>Valor Total com Compartilhado: R$ ${totalComCompartilhado.toFixed(2)}</strong></p>
+      <p><strong>Valor Total com Compartilhado: R$ ${(resultado.totalRequerente + valorCompartilhadoPorRequerente).toFixed(2)}</strong></p>
     </div>
     <hr/>
-    <a href="pdf.html">Gerar PDF</a>
   `;
 }
 
 function formatarResultadoCompartilhado(compartilhado) {
+  const totalDocumentos = compartilhado.contadorDocumentos.italianos + compartilhado.contadorDocumentos.brasileiros;
   return `
     <div>
       <h5>Compartilhado</h5>
+      <p><strong>Quantidade Total de Documentos: ${totalDocumentos}</strong></p>
       ${compartilhado.valorCertidaoNascimentoItaliana ? `<p>Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}</p>` : ""}
       ${compartilhado.valorCertidaoCasamentoItaliana ? `<p>Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}</p>` : ""}
       <p>Valor Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}</p>
@@ -383,84 +401,110 @@ function gerarPDF() {
   const pdf = new jsPDF({ orientation: 'landscape' });
   const nomePrimeiroRequerente = document.getElementById("nome-1").value || "Requerente1";
 
-  // Função para adicionar imagem de fundo de forma síncrona
-  function addBackgroundImage(pdf, imgSrc, width, height, callback) {
-    const background = new Image();
-    background.src = imgSrc;
-    background.onload = () => {
-      pdf.addImage(background, 'PNG', 0, 0, width, height);
-      if (callback) callback();
-    };
-  }
-
-  // Dimensões da página
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
 
-  // Página 1 com imagem de fundo e texto personalizado
-  addBackgroundImage(pdf, '/assets/1.png', pageWidth, pageHeight, () => {
+  function addBackgroundImageAsync(pdf, imgSrc, width, height) {
+    return new Promise((resolve) => {
+      const background = new Image();
+      background.src = imgSrc;
+      background.onload = () => {
+        pdf.addImage(background, 'PNG', 0, 0, width, height);
+        resolve();
+      };
+    });
+  }
+
+  async function gerar() {
+    await addBackgroundImageAsync(pdf, '/assets/1.png', pageWidth, pageHeight);
     pdf.setFont("Arial", "bold");
     pdf.setFontSize(42);
     pdf.setTextColor("#000000");
     pdf.text(`${nomePrimeiroRequerente}`, 80, 65);
 
-    // Página 2 com imagem de fundo
     pdf.addPage();
-    addBackgroundImage(pdf, '/assets/page2.png', pageWidth, pageHeight, () => {
+    await addBackgroundImageAsync(pdf, '/assets/page2.png', pageWidth, pageHeight);
 
-      // Página 3 com imagem de fundo
-      pdf.addPage();
-      addBackgroundImage(pdf, '/assets/page3.png', pageWidth, pageHeight, () => {
+    pdf.addPage();
+    await addBackgroundImageAsync(pdf, '/assets/page3.png', pageWidth, pageHeight);
+
+    pdf.addPage();
+    await addBackgroundImageAsync(pdf, '/assets/page4.png', pageWidth, pageHeight);
+
+    pdf.addPage();
+    await addBackgroundImageAsync(pdf, '/assets/page calculadora.png', pageWidth, pageHeight);
+
+    const compartilhado = calcularCompartilhado(1);
+    const valorCertidaoNascimentoItaliana = compartilhado.valorCertidaoNascimentoItaliana * cotacaoEuroGlobal;
+    const valorCertidaoCasamentoItaliana = compartilhado.valorCertidaoCasamentoItaliana * cotacaoEuroGlobal;
+
+    const totalCompartilhadoPDF =
+        valorCertidaoNascimentoItaliana +
+        valorCertidaoCasamentoItaliana +
+        compartilhado.valorCertidoesNascimento +
+        compartilhado.valorCertidoesCasamento +
+        compartilhado.valorTraducoes +
+        compartilhado.valorApostilamentos;
+
+    const valorCompartilhadoPorRequerentePDF = totalCompartilhadoPDF / requerenteId;
+
+    pdf.setFontSize(20);
+    pdf.setTextColor("#FFFFFF");
+    pdf.text(`Quantidade de Documentos: ${compartilhado.totalDocumentosCompartilhado}`, 10, 62);
+    pdf.setTextColor("#000000");
+    pdf.setFontSize(16);
+    pdf.text(`Certidão Nascimento Italiano: R$ ${valorCertidaoNascimentoItaliana.toFixed(2)}`, 160, 62);
+    pdf.text(`Certidão Casamento Italiano: R$ ${valorCertidaoCasamentoItaliana.toFixed(2)}`, 160, 79);
+    pdf.text(`Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}`, 160, 95);
+    pdf.text(`Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}`, 160, 112);
+    pdf.text(`Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}`, 160, 129);
+    pdf.text(`Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}`, 160, 146);
+    pdf.setTextColor("#FFFFFF");
+    pdf.setFontSize(22);
+    pdf.text(`Total Compartilhado: R$ ${totalCompartilhadoPDF.toFixed(2)}`, 175, 162);
+
+    for (let i = 1; i <= requerenteId; i++) {
+        const nomeRequerente = document.getElementById(`nome-${i}`).value || `Requerente ${i}`;
+        const resultado = calcularRequerente(
+            document.getElementById(`estado-${i}`).value,
+            document.getElementById(`estado-casamento-${i}`)?.value,
+            document.getElementById(`estado-civil-${i}`).value,
+            document.getElementById(`filhos-container-${i}`)?.childElementCount || 0,
+            i
+        );
+
+        const valorTotalComCompartilhado = resultado.totalRequerente + valorCompartilhadoPorRequerentePDF;
 
         pdf.addPage();
-        addBackgroundImage(pdf, '/assets/page4.png', pageWidth, pageHeight, () => {
-          
-          pdf.addPage();
-          addBackgroundImage(pdf, '/assets/page calculadora.png', pageWidth, pageHeight, () => {
+        await addBackgroundImageAsync(pdf, '/assets/page requerente.png', pageWidth, pageHeight);
 
-            // Dados do Compartilhado
-            const compartilhado = calcularCompartilhado(1);
-            pdf.setFontSize(30);
-            pdf.text("Valores Compartilhados", 20, 50);
-            pdf.setFontSize(16);
-            pdf.text(`Certidão Nascimento Italiano: R$ ${compartilhado.valorCertidaoNascimentoItaliana.toFixed(2)}`, 10, 70);
-            pdf.text(`Certidão Casamento Italiano: R$ ${compartilhado.valorCertidaoCasamentoItaliana.toFixed(2)}`, 10, 85);
-            pdf.text(`Certidões Nascimento Brasileiras: R$ ${compartilhado.valorCertidoesNascimento.toFixed(2)}`, 10, 101);
-            pdf.text(`Certidão Casamento/Divórcio: R$ ${compartilhado.valorCertidoesCasamento.toFixed(2)}`, 10, 118);
-            pdf.text(`Traduções: R$ ${compartilhado.valorTraducoes.toFixed(2)}`, 10, 135);
-            pdf.text(`Apostilamentos: R$ ${compartilhado.valorApostilamentos.toFixed(2)}`, 10, 152);
-            pdf.text(`Total Compartilhado: R$ ${compartilhado.totalCompartilhado.toFixed(2)}`, 10, 169);
+        pdf.setFontSize(18);
+        pdf.setTextColor("#FFFFFF");
+        pdf.text(`Requerente: ${nomeRequerente}`, 130, 44);
+        pdf.setFontSize(16);
+        pdf.text(`Quantidade de Documentos: ${resultado.totalDocumentos}`, 130, 61);
+        pdf.text(`Valor Compartilhado: R$ ${valorCompartilhadoPorRequerentePDF.toFixed(2)}`, 130, 77);
+        pdf.text(`Valor Certidões Nascimento: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}`, 130, 94);
+        pdf.text(`Valor Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}`, 130, 110);
+        pdf.text(`Valor Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}`, 130, 126);
+        pdf.text(`Valor Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}`, 130, 143);
+        pdf.setFontSize(22);
+        pdf.setTextColor("#000000");
+        pdf.text(`Total do requerente: R$ ${valorTotalComCompartilhado.toFixed(2)}`, 155, 158);
+    }
 
-            let altura = 70;
-            for (let i = 1; i <= requerenteId; i++) {
-              const nomeRequerente = document.getElementById(`nome-${i}`).value || `Requerente ${i}`;
-              const resultado = calcularRequerente(
-                document.getElementById(`estado-${i}`).value,
-                document.getElementById(`estado-casamento-${i}`)?.value,
-                document.getElementById(`estado-civil-${i}`).value,
-                document.getElementById(`filhos-container-${i}`)?.childElementCount || 0,
-                i
-              );
+    pdf.addPage();
+    await addBackgroundImageAsync(pdf, '/assets/page final.png', pageWidth, pageHeight);
 
-              pdf.setFontSize(16);
-              pdf.setTextColor("#FFFFFF");
-              pdf.text(`Requerente: ${nomeRequerente}`, 155, altura);
-              altura += 10;
-              pdf.setFontSize(16);
-              pdf.text(`Certidões Nascimento: R$ ${resultado.valorCertidoesNascimento.toFixed(2)}`, 155, 85);
-              pdf.text(`Certidão Casamento/Divórcio: R$ ${resultado.valorCertidoesCasamento.toFixed(2)}`, 155, 101);
-              pdf.text(`Traduções: R$ ${resultado.valorTraducoes.toFixed(2)}`, 155, 118);
-              pdf.text(`Apostilamentos: R$ ${resultado.valorApostilamentos.toFixed(2)}`, 155, 135);
-              pdf.text(`Total do Requerente: R$ ${resultado.totalRequerente.toFixed(2)}`, 155, 152);
-            }
-
-            // Salva o PDF
-            pdf.save(`Resumo_Calculo_${nomePrimeiroRequerente}.pdf`);
-          });
-        });
-      });
-    });
-  });
+    pdf.save(`Resumo_Calculo_${nomePrimeiroRequerente}.pdf`);
+  }
+  gerar();
 }
 
-document.getElementById("btn-gerar-pdf").addEventListener("click", gerarPDF);
+document.getElementById("btn-gerar-pdf").addEventListener("click", function () {
+  if (!cotacaoEuroGlobal) {
+    alert("Por favor, realize o cálculo antes de gerar o PDF.");
+    return;
+  }
+  gerarPDF(cotacaoEuroGlobal);
+});

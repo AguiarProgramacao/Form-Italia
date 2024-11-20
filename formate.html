@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+  <title>Imigrei Calculadora</title>
+</head>
+<body>
+  <div class="bg-um">
+    <div class="req-container">
+      <div class="container-um">
+        <div class="passos">
+          <button class="btn btn-passo-um" type="button">Passo 1</button>
+          <button class="btn btn-passo-dois" type="button">Passo 2</button>
+        </div>
+        <div class="desc-req">
+          <h3>Certidões Requerentes</h3>
+          <p>Adicione as informações dos requerentes:</p>
+        </div>
+      </div>
+      <form id="form-principal" onsubmit="return false;">
+        <div id="requerentes-container"></div>
+        <button id="add-requerente" type="button">Adicionar Requerente</button>
+      </form>
+    </div>  
+  </div>
+
+  <div class="bg-dois">
+    <div class="comp-container">
+      <div class="container-dois">
+        <div class="passos">
+          <button class="btn btn-passo-um" type="button">Passo 1</button>
+          <button class="btn btn-passo-dois" type="button">Passo 2</button>
+        </div>
+        <div class="desc-comp">
+          <h3>Certidões Compartilhadas</h3>
+          <p>
+            <b>Adicione os nomes das pessoas em comum que antecedem os requerentes!</b>
+            exemplo: se o bisavô da o direito e os requerentes são irmãos, você
+            adicionaro nome das pessoas que antecedem, pai, avô...
+          </p>
+        </div>
+      </div>
+      <div id="compartilhadas-container" class="compartilhadas">
+        <h3>Certidões Compartilhadas</h3>
+        <div id="compartilhados-container"></div>
+        <button id="add-compartilhado">Adicionar Pessoa</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
